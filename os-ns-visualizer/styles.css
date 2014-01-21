@@ -1,0 +1,17 @@
+#br-int, #br-ext, #networks {
+    border: 1px solid;
+    height: 150px;
+}
+
+#routers {
+       height: 150px;
+       position: relative;
+}
+
+.router {
+    position: absolute;
+    top: 12.5%;
+    height: 75%;
+    border: 1px solid;
+    width: 100px;
+}
