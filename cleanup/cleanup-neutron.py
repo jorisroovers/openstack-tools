@@ -1,34 +1,14 @@
 import os
+import shared
 from neutronclient.v2_0.client import Client
 
-def exec_and_report(msg, func, *args):
-    print msg,
-    try:
-        func(*args)
-        print "DONE"
-    except e:
-        print "FAIL"
 
-def delete_resource(client, resource_name, resource):
-    message = "\tDeleting %s %s (%s)..." % (resource_name, resource['name'], resource['id'])
-    delete_method_name = "delete_" + resource_name
-    delete_method = getattr(client, delete_method_name)
-    exec_and_report(message, delete_method,resource['id'])
 
 #TODO: delete a list of resources
 
 
 if __name__ == "__main__":
-    username = os.environ['OS_USERNAME']
-    password = os.environ['OS_PASSWORD']
-    auth_url = os.environ['OS_AUTH_URL']
-    tenant_name = os.environ['OS_TENANT_NAME']
-
-    print "username: %s" % username
-    print  "password: %s" % password
-    print "auth_url: %s" % auth_url
-    print "Tenant Name: %s" % tenant_name
-    print "\n"
+	username, password, auth_url, tenant_name = get_credentials()
 
     neutron_client = Client(username=username, password=password, auth_url
     =auth_url, tenant_name=tenant_name)
