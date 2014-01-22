@@ -2,19 +2,26 @@ __author__ = 'Joris Roovers'
 from shared import print_row
 import os
 import cinderclient.client
-
+import neutronclient.v2_0.client
 
 
 class OSClientManager(object):
-
+    """
+    Class managing different openstack clients.
+    Also allows easy initialization based on the commonly used OS_*
+    environment variables.
+    """
     def __init__(self, username, password, auth_url, tenant_name):
         self.username = username
         self.password = password
         self.auth_url = auth_url
         self.tenant_name = tenant_name
         # clients
-        self.volume_client = cinderclient.client.Client('1', username, password, tenant_name, auth_url)
-
+        self.volume_client = cinderclient.client.Client('1', username, password,
+                                                        tenant_name, auth_url)
+        self.network_client = neutronclient.v2_0.client.Client(
+            username=username, password=password, tenant_name=tenant_name,
+            auth_url=auth_url)
 
     @classmethod
     def create_from_env_vars(cls):
