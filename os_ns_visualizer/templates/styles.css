@@ -1,17 +1,31 @@
-#br-int, #br-ext, #networks {
+body {
+    font-size: 13px;
+}
+
+
+#br-int, #br-ext  {
     border: 1px solid;
     height: 150px;
 }
 
-#routers {
+#routers, #networks {
        height: 150px;
-       position: relative;
+       border: 1px dashed;
+       padding: 1em;
+       margin: 1em 0;
 }
 
-.router {
-    position: absolute;
-    top: 12.5%;
+.router, .network {
     height: 75%;
     border: 1px solid;
-    width: 100px;
+    width: 250px;
+    position:relative;
+}
+
+.network .link {
+    position: absolute;
+    bottom: 0;
+    border-top: 1px solid;
+    border-right: 1px solid;
+    display: inline;
 }

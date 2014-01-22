@@ -6,13 +6,29 @@
 
         <div id="networks">
             Networks
-            <div class="network"></div>
-            <div class="network"></div>
-        </div>        
+            {% for network in networks %}
+            <div class="network">
+                <div class="name">{{network.neutron_network['name']}}</div>
+                <div class="namespace">{{network.namespace}}</div>
+                <div>dnsmasq PID: {{network.dns_process.pid}}</div>
+                {% for link in network.links %}
+                    {% if link.type != "link/loopback" %}
+                    <div class="link">{{link.name}}</div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
         
         <div id="br-int">br-int</div>
         <div id="routers">
-            <div class="router">Router</div>
+            Routers
+             {% for router in routers %}
+            <div class="router">
+                <div class="name">{{router.neutron_router['name']}}</div>
+                <div class="namespace">{{router.namespace}}</div>
+            </div>
+            {% endfor %}
         </div>
         <div id="br-ext">br-ext</div>
         
