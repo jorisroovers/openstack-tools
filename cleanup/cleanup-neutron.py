@@ -1,5 +1,6 @@
 import os
-import shared
+from common.shared import delete_resource
+from common.os_client_manager import OSClientManager
 from neutronclient.v2_0.client import Client
 
 
@@ -8,10 +9,11 @@ from neutronclient.v2_0.client import Client
 
 
 if __name__ == "__main__":
-	username, password, auth_url, tenant_name = get_credentials()
 
-    neutron_client = Client(username=username, password=password, auth_url
-    =auth_url, tenant_name=tenant_name)
+
+	mgr = OSClientManager.create_from_env_vars()
+
+    neutron_client = mgr.network_client
 
     print "DETERMINING WHAT SHOULD BE KEPT...",
     all_networks = neutron_client.list_networks()

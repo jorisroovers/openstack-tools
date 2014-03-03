@@ -1,59 +1,80 @@
 from common.os_client_manager import OSClientManager
+from common.shared import OperationList
 
 
-class OperationList():
+class TempestCleaner:
+    pass
+    # TODO implement
 
-    def __init__(self):
-        self.operations = []
-        self.descriptions = []
 
-    def add_operation(self, description, func):
-        self.descriptions.append(description)
-        self.operations.append(func)
-
-    def confirm_and_execute(self):
-        print "The following operations are scheduled for execution:"
-        for description in self.descriptions:
-            print description
-
-        valid_input = ["y", "n"]
-        input = ""
-        while (input not in valid_input):
-            input = raw_input("Do you want to execute these operations? (y/n)")
-            input = input.lower()
-
-        if input == "y":
-            print "Executing Operations..."
-            for index, description in enumerate(self.descriptions):
-                print "%s..." % description,
-                try:
-                    self.operations[index]()
-                    print "DONE"
-                except:
-                    print "FAIL"
-            print "All Done."
-            return True
-        else:
-            print "Aborted."
-            return False
+def _find_by_id(objs, id):
+    obj = [obj for obj in objs if obj.id == id]
+    if len(obj) > 0:
+        return obj[0]
+    return None
 
 
 def main():
+    tempest_tenant_names = ["Tempest", "Tempest2"]
 
+    print "[INIT]"
+    print "Initializing openstack clients...",
     mgr = OSClientManager.create_from_env_vars()
-    volume_client = mgr.volume_client
+    print "DONE"
 
-    print "Fetching volumes..."
-    volumes = volume_client.volumes.list()
+    print "Fetching Tenants...",
+    tenants = mgr.identity_client.tenants.list()
+    tenant_ids = [tenant.id for tenant in tenants]
+    temptest_tenant_ids = [tenant.id for tenant in tenants
+                           if tenant.name in tempest_tenant_names]
+
+    print "DONE"
+
+    print "Fetching Users...",
+    users = mgr.identity_client.users.list()
+    print "DONE"
+
+    print "[CLEANING UP INSTANCES]"
+    print "Fetching instances...",
+    instances = mgr.compute_client.servers.list(True, {"all_tenants": "1"})
+    print "DONE"
+    operation_list = OperationList()
+    for instance in instances:
+        tenant_id = instance.tenant_id
+        if (tenant_id not in tenant_ids) or (tenant_id in temptest_tenant_ids):
+            tenant = _find_by_id(tenants, instance.tenant_id)
+            user = _find_by_id(users, instance.user_id)
+            tenant_name = "N/A" if tenant == None else tenant.name
+            user_name = "N/A" if user == None else user.name
+
+            operation_list.add_operation(
+                "Delete %s (Tenant:%s, User: %s)" % (instance.name,
+                                                     tenant_name,
+                                                     user_name), instance
+                .delete)
+
+    operation_list.confirm_and_execute()
+
+
+    print "[CLEANING UP VOLUMES]"
+
+    print "Fetching volumes...",
+    volumes = mgr.volume_client.volumes.findall()
+    print "DONE"
 
     print "Cleaning up Tempest volumes"
 
     operation_list = OperationList()
 
     for volume in volumes:
-        if "tempest" in volume.display_name:
-            print dir(volume)
-            operation_list.add_operation("Delete %s" % volume.display_name, volume.force_delete)
+        tenant_id = getattr(volume, 'os-vol-tenant-attr:tenant_id')
+        #user_id =
+        if (tenant_id not in tenant_ids) or (tenant_id in temptest_tenant_ids):
+            tenant = _find_by_id(tenants, tenant_id)
+            tenant_name = "N/A" if tenant == None else tenant.name
+            operation_list.add_operation("Delete %s (tenant:%s)" % (
+                volume.display_name, tenant_name),
+                                         volume.delete)
 
     operation_list.confirm_and_execute()
 
